@@ -1,0 +1,27 @@
+bubble_p: 
+    rrmovq  %rsi, %rax
+    subq    $1, %rax
+    jmp     .L2
+.L6:
+    irmovq   $0, %rcx
+    jmp     .L3
+.L5:
+    rmmovq  8(%rdi), %rdx
+    rmmovq  (%rdi), %r8
+    cmp     %rdx, %r8
+    jge     .L4
+    rmmovq  %r8, 8(%rdi)
+    rmmovq  %rdx, (%rdi)
+.L4:
+    addq    $1, %rcx
+    addq    $8, %rdi
+.L3:
+    cmp     %rcx, %rax
+    jl      .L5
+    sal     %rax, $3
+    subq    %rax, %rdi
+    subq    $1, %rax
+.L2:
+    cmp     %rax, $0
+    jg      .L6
+    ret
