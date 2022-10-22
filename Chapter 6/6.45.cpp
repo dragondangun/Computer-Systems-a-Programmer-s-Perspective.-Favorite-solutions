@@ -12,75 +12,52 @@ void transpose(int *dst, int *src, int dim) {
 
 }
 
-void copyPartToTemp(int* src, int* tempMatrix, int dim, int tempMatrixDim, int posFrom, int jTo, int kTo);
-void copyTempPartToDest(int* dst, int* tempMatrix, int dim, int tempMatrixDim, int posFrom, int jTo, int kTo, int tempPosStep = 0);
+void copyPartSrcToDst(int* src, int* dst, int dim, int partDim, int srcFrom, int dstFrom, int jTo, int kTo);
 
-void myTransposeUsingMatrix(int *dst, int *src, int dim, int tempMatrixDim){
-    int tempMatrixSize = tempMatrixDim*tempMatrixDim;
-    int* tempMatrix = new int[tempMatrixSize];
-    int dimEnd = dim - tempMatrixDim + 1;
-    int pos = 0;
+void myTransposeUsingMatrix(int *dst, int *src, int dim, int partDim){
+    int dimEnd = dim - partDim + 1;
+    int srcFrom = 0;
+    int dstFrom = 0;
     int col = 0;
     int i = 0;
-    int rest = dim%tempMatrixDim;
+    int rest = dim%partDim;
 
-    for(; col < dimEnd; col += tempMatrixDim){
-        for(; i < dimEnd; i+=tempMatrixDim){
-            pos = i*dim+col;
-            copyPartToTemp(src, tempMatrix, dim, tempMatrixDim, pos, tempMatrixDim, tempMatrixDim);
-
-            pos = (col*dim)+i;
-            copyTempPartToDest(dst, tempMatrix, dim, tempMatrixDim, pos, tempMatrixDim, tempMatrixDim);
+    for(; col < dimEnd; col += partDim, i = 0){ 
+        for(; i < dimEnd; i+=partDim){
+            srcFrom = i*dim+col;
+            dstFrom = (col*dim)+i;
+            copyPartSrcToDst(src, dst, dim, partDim, srcFrom, dstFrom, partDim, partDim);
         }
 
         if(rest){
             i = dim-rest;
-            pos = i*dim+col;
-            copyPartToTemp(src, tempMatrix, dim, tempMatrixDim, pos, rest, tempMatrixDim);
-
-            pos = (col*dim)+i;
-            copyTempPartToDest(dst, tempMatrix, dim, tempMatrixDim, pos, rest, tempMatrixDim, tempMatrixDim-rest);
+            srcFrom = i*dim+col;
+            dstFrom = (col*dim)+i;
+            copyPartSrcToDst(src, dst, dim, partDim, srcFrom, dstFrom, rest, partDim);
         }
-    
-        i=0;
     }
 
     if(rest){
         col = dim-rest;
-        i = 0;
 
-        for(; i < dimEnd; i+=tempMatrixDim){
-            pos = i*dim+col;
-            copyPartToTemp(src, tempMatrix, dim, tempMatrixDim, pos, tempMatrixDim, rest);
-
-            pos = (col*dim)+i;
-            copyTempPartToDest(dst, tempMatrix, dim, tempMatrixDim, pos, tempMatrixDim, rest);
+        for(; i < dimEnd; i+=partDim){;
+            srcFrom = i*dim+col;
+            dstFrom = (col*dim)+i;
+            copyPartSrcToDst(src, dst, dim, partDim, srcFrom, dstFrom, partDim, rest);
         }
         
-        i = dim-rest;
-        pos = i*dim+col;
-        copyPartToTemp(src, tempMatrix, dim, tempMatrixDim, pos, rest, rest);
-
-        pos = (col*dim)+i;
-        copyTempPartToDest(dst, tempMatrix, dim, tempMatrixDim, pos, rest, rest, tempMatrixDim-rest);    
-    }
-    delete[] tempMatrix;
-}
-
-void copyPartToTemp(int* src, int* tempMatrix, int dim, int tempMatrixDim, int posFrom, int jTo, int kTo){
-    for(int j = 0; j < jTo; j++, posFrom+=dim){
-        for(int k = 0, line = 0; k < kTo; k++, line+=tempMatrixDim){
-            tempMatrix[j+line]=src[posFrom+k];
-        }
+        int pos = (dim+1)*col;
+        copyPartSrcToDst(src, dst, dim, partDim, pos, pos, rest, rest);
     }
 }
 
-void copyTempPartToDest(int* dst, int* tempMatrix, int dim, int tempMatrixDim, int posFrom, int jTo, int kTo, int tempPosStep){
-    for(int k = 0, tempPos = 0; k < kTo; k++, posFrom+=dim, tempPos+=tempPosStep) {
-        for(int j = 0; j < jTo; j++, tempPos++){
-            dst[posFrom+j]=tempMatrix[tempPos];
+void copyPartSrcToDst(int* src, int* dst, int dim, int partDim, int srcFrom, int dstFrom, int jTo, int kTo){
+    for(int j = 0; j < jTo; j++, srcFrom+=dim){
+        for(int k = 0, line = dstFrom; k < kTo; k++, line+=dim){
+            dst[j+line]=src[srcFrom+k];
         }
     }
+
 }
 
 void myTransposeUsingMatrixWrapper(int *dst, int *src, int dim){
