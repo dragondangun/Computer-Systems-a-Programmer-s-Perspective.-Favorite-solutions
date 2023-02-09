@@ -20,7 +20,6 @@ void myCol_convert(int *G, int dim){
         }
     }
 
-    int debugM, debugF;
     for(int i = 1; i<dim; i++){
         for(int j = 0, space = dim-2, counter = i; j<i; j++, counter+=space+1, --space){
             flat[counter] |= G[i*dim + j];
